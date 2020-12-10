@@ -1,7 +1,9 @@
+/// Fie responsible for time utils
+use serde::{Deserialize, Serialize};
 use std::ops::Add;
-/// Time utils
 use std::time::Duration as StdDuration;
 
+#[derive(Serialize, Deserialize)]
 pub struct Duration {
     hrs: u64,
     mins: u64,
@@ -9,14 +11,14 @@ pub struct Duration {
 }
 
 impl Duration {
-    fn from_secs(secs: u64) -> Duration {
+    pub fn from_secs(secs: u64) -> Duration {
         let hrs = secs / 3600;
         let secs = secs % 3600;
         let mins = secs / 60;
         let secs = secs % 60;
         Duration { hrs, mins, secs }
     }
-    fn into_secs(self) -> u64 {
+    pub fn into_secs(self) -> u64 {
         self.secs + self.mins * 60 + self.hrs * 3600
     }
 }
