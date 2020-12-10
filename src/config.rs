@@ -1,19 +1,19 @@
 /// implements JSON read-write
-
-use serde::{Serialize, Deserialize};
-use std::time::{Duration, Instant};
+use crate::time::Duration;
+use serde::{Deserialize, Serialize};
+use std::time::{Duration as StdDuration, Instant as StdInstant};
 
 #[derive(Serialize, Deserialize)]
 pub struct Pomodoro {
-    work_duration: u16, // duration in minutes
+    work_duration: u16,        // duration in minutes
     short_break_duration: u16, // duration in minutes
-    long_break_duration: u16, // duration in minutes
+    long_break_duration: u16,  // duration in minutes
     cycles_before_long_break: u8,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct Scenario {
-    scenario: Vec<u16>
+    scenario: Vec<u16>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -25,8 +25,8 @@ pub struct Buff {
 impl Buff {
     pub fn new() -> Self {
         Self {
-            work_intervals: vec!(),
-            rest_intervals: vec!(),
+            work_intervals: vec![],
+            rest_intervals: vec![],
         }
     }
 
@@ -42,16 +42,19 @@ impl Buff {
 #[derive(Serialize, Deserialize)]
 pub struct History {
     work_intervals: Vec<Duration>,
-    rest_intervals: Vec<Duration>
+    rest_intervals: Vec<Duration>,
 }
 
 #[test]
 fn test_history() {
-    let mut h = History{ work_intervals: vec!(), rest_intervals: vec!() };
-    let start = Instant::now();
+    let mut h = History {
+        work_intervals: vec![],
+        rest_intervals: vec![],
+    };
+    let start = StdInstant::now();
     let end = start.elapsed();
     let t = Duration::from_secs(4500);
-    h.work_intervals.push(end);
+    h.work_intervals.push(end.into());
     h.rest_intervals.push(t);
 
     println!("{}", serde_json::to_string(&h).unwrap());
