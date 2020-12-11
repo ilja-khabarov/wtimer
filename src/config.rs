@@ -45,7 +45,7 @@ pub struct HistoryEntry {
     rest_interval: Duration,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Default)]
 pub struct History {
     intervals: Vec<HistoryEntry>,
 }
