@@ -40,17 +40,19 @@ impl Buff {
 }
 
 #[derive(Serialize, Deserialize)]
+pub struct HistoryEntry {
+    work_interval: Duration,
+    rest_interval: Duration,
+}
+
+#[derive(Serialize, Deserialize)]
 pub struct History {
-    work_intervals: Vec<Duration>,
-    rest_intervals: Vec<Duration>,
+    intervals: Vec<HistoryEntry>,
 }
 
 #[test]
 fn test_history() {
-    let mut h = History {
-        work_intervals: vec![],
-        rest_intervals: vec![],
-    };
+    let mut h = History { intervals: vec![] };
     let start = StdInstant::now();
     let end = start.elapsed();
     let t = Duration::from_secs(4500);
