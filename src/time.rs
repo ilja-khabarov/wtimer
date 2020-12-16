@@ -11,6 +11,7 @@ pub struct Duration {
 }
 
 impl Duration {
+    // main constructor. Prefer using it for all other constructors' implementations
     pub fn from_secs(secs: u64) -> Duration {
         let hrs = secs / 3600;
         let secs = secs % 3600;
@@ -18,6 +19,12 @@ impl Duration {
         let secs = secs % 60;
         Duration { hrs, mins, secs }
     }
+
+    pub fn from_minutes(mins: u64) -> Duration {
+        let secs = mins * 60;
+        Duration::from_secs(secs)
+    }
+
     pub fn into_secs(self) -> u64 {
         self.secs + self.mins * 60 + self.hrs * 3600
     }
@@ -27,6 +34,12 @@ impl From<StdDuration> for Duration {
     fn from(d: StdDuration) -> Duration {
         let secs = d.as_secs();
         Self::from_secs(secs)
+    }
+}
+
+impl From<Duration> for StdDuration {
+    fn from(d: Duration) -> Self {
+        StdDuration::from_secs(d.into_secs())
     }
 }
 
