@@ -5,8 +5,8 @@ use std::cell::Cell;
 use std::time::{Duration as StdDuration, Instant as StdInstant};
 
 pub trait Config {
-    fn get_next_work_interval(&self) -> Duration;
-    fn get_next_rest_interval(&self) -> Duration;
+    fn next_work_interval(&self) -> Duration;
+    fn next_rest_interval(&self) -> Duration;
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
@@ -31,13 +31,13 @@ impl Default for Pomodoro {
 }
 
 impl Config for Pomodoro {
-    fn get_next_work_interval(&self) -> Duration {
+    fn next_work_interval(&self) -> Duration {
         self.current_cycles_amount
             .set(self.current_cycles_amount.get() + 1);
         Duration::from_minutes(self.work_duration as u64)
     }
 
-    fn get_next_rest_interval(&self) -> Duration {
+    fn next_rest_interval(&self) -> Duration {
         if self.current_cycles_amount.get() == self.cycles_before_long_break {
             self.current_cycles_amount.set(0);
             Duration::from_minutes(self.long_break_duration as u64)
@@ -82,6 +82,15 @@ pub struct HistoryEntry {
     rest_interval: Duration,
 }
 
+impl HistoryEntry {
+    pub fn new(work: Duration, rest: Duration) -> Self {
+        Self {
+            work_interval: work,
+            rest_interval: rest,
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize, Default)]
 pub struct History {
     intervals: Vec<HistoryEntry>,
@@ -91,19 +100,26 @@ impl History {
     pub fn len(&self) -> usize {
         self.intervals.len()
     }
+
+    pub fn push(&mut self, interval: HistoryEntry) {
+        self.intervals.push(interval);
+    }
 }
 
 #[test]
-#[ignore]
 fn test_history() {
-    let mut h = History { intervals: vec![] };
+    let mut h = History {
+        intervals: vec![HistoryEntry {
+            work_interval: Duration::from_minutes(25),
+            rest_interval: Duration::from_minutes(5),
+        }],
+    };
     let start = StdInstant::now();
     let end = start.elapsed();
     let t = Duration::from_secs(4500);
-    //h.work_intervals.push(end.into());
-    //h.rest_intervals.push(t);
+    let s = serde_json::to_string(&h).unwrap();
 
-    //println!("{}", serde_json::to_string(&h).unwrap());
+    println!("----- History: {}", s);
 }
 
 #[test]

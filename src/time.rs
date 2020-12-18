@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::ops::Add;
 use std::time::Duration as StdDuration;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Duration {
     hrs: u64,
     mins: u64,
