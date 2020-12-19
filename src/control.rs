@@ -8,7 +8,6 @@ use dialog::DialogBox;
 use std::cell::Cell;
 use std::thread;
 
-//extern crate shellexpand;
 use shellexpand;
 
 pub struct Control {
@@ -16,7 +15,7 @@ pub struct Control {
     pomodoro: Pomodoro,
 }
 
-const DEFAULT_PATH: &str = "~/.wtimer/";
+//const DEFAULT_PATH: &str = "~/.wtimer/";
 const DEFAULT_HISTORY_PATH: &str = "~/.wtimer/data/history.json";
 const DEFAULT_POMODORO_PATH: &str = "~/.wtimer/config/pomodoro.json";
 
@@ -29,15 +28,12 @@ impl Control {
         history_filename: Option<String>,
         pomodoro_filename: Option<String>,
     ) -> Result<Self, Box<dyn Error>> {
-        let history_filename =
-            history_filename.unwrap_or(shellexpand::tilde(DEFAULT_HISTORY_PATH).into());
         let pomodoro_filename =
             pomodoro_filename.unwrap_or(shellexpand::tilde(DEFAULT_POMODORO_PATH).into());
-
-        let data = fs::read_to_string(history_filename).unwrap();
-        let history = Cell::new(serde_json::from_str(&data)?);
         let data = fs::read_to_string(pomodoro_filename)?;
         let pomodoro = serde_json::from_str(&data)?;
+
+        let history = Cell::new(Self::load_history(history_filename));
 
         Ok(Self { history, pomodoro })
     }
@@ -47,31 +43,52 @@ impl Control {
         let work_duration = control.next_work_interval();
         let rest_duration = control.next_rest_interval();
 
-        let start = std::time::Instant::now();
-        //working
-        thread::sleep(work_duration.into());
-        dialog::Message::new("Done working. Have your rest.")
-            .show()
-            .expect("Failed to show dialog box");
-        let real_work_dur = start.elapsed().into();
+        loop {
+            let mut new_history = self.history.take();
+            let start = std::time::Instant::now();
+            //working
+            thread::sleep(work_duration.into());
+            dialog::Message::new("Done working. Have your rest.")
+                .show()
+                .expect("Failed to show dialog box");
+            let real_work_dur = start.elapsed().into();
 
-        // resting
-        let start = std::time::Instant::now();
-        thread::sleep(rest_duration.into());
-        dialog::Message::new("Done resting. Back to work.")
-            .show()
-            .expect("Failed to show dialog box");
-        let real_rest_dur = start.elapsed().into();
+            // resting
+            let start = std::time::Instant::now();
+            thread::sleep(rest_duration.into());
+            dialog::Message::new("Done resting. Back to work.")
+                .show()
+                .expect("Failed to show dialog box");
+            let real_rest_dur = start.elapsed().into();
 
-        let real_durations: HistoryEntry = HistoryEntry::new(real_work_dur, real_rest_dur);
+            let real_durations: HistoryEntry = HistoryEntry::new(real_work_dur, real_rest_dur);
 
-        let mut new_history = self.history.take();
-        new_history.push(real_durations);
-        self.history.set(new_history);
-        self.store_history(None).unwrap();
+            new_history.push(real_durations);
+            self.history.set(new_history);
+            self.store_history(None).unwrap();
+
+            let answer = dialog::Input::new("Continue pomodoring?")
+                .show()
+                .expect("Failed to show dialog box");
+            match answer {
+                Some(String::from_string("y")) => (),
+                _ => break,
+            }
+        }
     }
 
-    pub fn store_history(&self, filename: Option<String>) -> Result<(), Box<dyn Error>> {
+    fn load_history(filename: Option<String>) -> History {
+        let history_filename = filename.unwrap_or(shellexpand::tilde(DEFAULT_HISTORY_PATH).into());
+        let data = fs::read_to_string(history_filename).unwrap();
+        if let Ok(history) = serde_json::from_str::<History>(&data) {
+            if history.is_today() {
+                return history;
+            }
+        }
+        History::default()
+    }
+
+    fn store_history(&self, filename: Option<String>) -> Result<(), Box<dyn Error>> {
         let filename = filename.unwrap_or(shellexpand::tilde(DEFAULT_HISTORY_PATH).into());
         let json = serde_json::to_string(&self.history.take())?;
         fs::write(filename, json)?; // full file rewrite is not a bug ATM

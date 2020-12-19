@@ -1,8 +1,8 @@
 /// implements JSON read-write
 use crate::time::Duration;
+use chrono::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::cell::Cell;
-use std::time::{Duration as StdDuration, Instant as StdInstant};
 
 pub trait Config {
     fn next_work_interval(&self) -> Duration;
@@ -91,9 +91,21 @@ impl HistoryEntry {
     }
 }
 
-#[derive(Serialize, Deserialize, Default)]
+#[derive(Serialize, Deserialize)]
 pub struct History {
+    #[serde(with = "serde_with::rust::display_fromstr")]
+    date: NaiveDate,
     intervals: Vec<HistoryEntry>,
+}
+
+impl Default for History {
+    fn default() -> Self {
+        let date = Local::today().naive_local();
+        History {
+            date,
+            intervals: vec![],
+        }
+    }
 }
 
 impl History {
@@ -104,11 +116,16 @@ impl History {
     pub fn push(&mut self, interval: HistoryEntry) {
         self.intervals.push(interval);
     }
+
+    pub fn is_today(&self) -> bool {
+        self.date == Local::today().naive_local()
+    }
 }
 
 #[test]
 fn test_history() {
     let mut h = History {
+        date: Local::today().naive_local(),
         intervals: vec![HistoryEntry {
             work_interval: Duration::from_minutes(25),
             rest_interval: Duration::from_minutes(5),
