@@ -40,10 +40,10 @@ impl Control {
 
     pub fn run(&self) {
         let control = Control::load(None, None).expect("Failed to load configuration");
-        let work_duration = control.next_work_interval();
-        let rest_duration = control.next_rest_interval();
 
         loop {
+            let work_duration = control.next_work_interval();
+            let rest_duration = control.next_rest_interval();
             let mut new_history = self.history.take();
             let start = std::time::Instant::now();
             //working
@@ -67,12 +67,16 @@ impl Control {
             self.history.set(new_history);
             self.store_history(None).unwrap();
 
-            let answer = dialog::Input::new("Continue pomodoring?")
+            if let Some(answer) = dialog::Input::new("Continue pomodoring?")
                 .show()
-                .expect("Failed to show dialog box");
-            match answer {
-                Some(String::from_string("y")) => (),
-                _ => break,
+                .expect("Failed to show dialog box")
+            {
+                match &answer as &str {
+                    "y" => (),
+                    _ => break,
+                }
+            } else {
+                break;
             }
         }
     }
