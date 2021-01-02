@@ -28,6 +28,10 @@ impl Duration {
     pub fn into_secs(self) -> u64 {
         self.secs + self.mins * 60 + self.hrs * 3600
     }
+
+    pub fn as_mins(&self) -> u64 {
+        self.mins + self.hrs * 60
+    }
 }
 
 impl From<StdDuration> for Duration {

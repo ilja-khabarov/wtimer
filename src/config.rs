@@ -134,7 +134,7 @@ fn test_history() {
     let start = StdInstant::now();
     let end = start.elapsed();
     let t = Duration::from_secs(4500);
-    let s = serde_json::to_string(&h).unwrap();
+    let s = serde_json::to_string_pretty(&h).unwrap();
 
     println!("----- History: {}", s);
 }
@@ -148,7 +148,7 @@ fn test_pomodoro() {
         cycles_before_long_break: 3,
         current_cycles_amount: Cell::new(0),
     };
-    let s = serde_json::to_string(&p).unwrap();
+    let s = serde_json::to_string_pretty(&p).unwrap();
     let pomostr = r#"{"work_duration":25,"short_break_duration":5,"long_break_duration":15,"cycles_before_long_break":3,"current_cycles_amount":0}"#;
     let deser_pomo: Pomodoro = serde_json::from_str(pomostr).unwrap();
     assert_eq!(p, deser_pomo);

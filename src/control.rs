@@ -44,6 +44,11 @@ impl Control {
         loop {
             let work_duration = control.next_work_interval();
             let rest_duration = control.next_rest_interval();
+            println!(
+                "Work: {}, Rest: {}",
+                work_duration.as_mins(),
+                rest_duration.as_mins(),
+            );
             let mut new_history = self.history.take();
             let start = std::time::Instant::now();
             //working
@@ -94,7 +99,7 @@ impl Control {
 
     fn store_history(&self, filename: Option<String>) -> Result<(), Box<dyn Error>> {
         let filename = filename.unwrap_or(shellexpand::tilde(DEFAULT_HISTORY_PATH).into());
-        let json = serde_json::to_string(&self.history.take())?;
+        let json = serde_json::to_string_pretty(&self.history.take())?;
         fs::write(filename, json)?; // full file rewrite is not a bug ATM
         Ok(())
     }
