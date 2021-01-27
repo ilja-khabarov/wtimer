@@ -9,8 +9,7 @@ fn main() {
         println!("'config' parameter does not present");
     }
     */
-    let c = Control::load(None, None).expect("Argh");
-    c.run();
+    Control::run();
 
     println!("Hello, world!");
 }
